@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <script src="/jquery/dist/jquery.min.js"></script>
+    <script src="/javascripts/script.js"> </script>
+  </head>
+  <body>
+    <section>
+      <header>
+        <h1>Tree Writer</h1>
+      </header>
+      <div id="tree-container"></div>
+    </section>
+  <script>
+    $(function(){
+
+      var level = 0;
+      var count = 0;
+      var parent = "#tree-container";
+      var json_tree = {
+        "children": [],
+        "value": "Root",
+        "id": count,
+        "element": "",
+        "input": ""
+      }
+
+      function drawTree(){
+        delve(json_tree);
+      }
+
+      function delve (node){
+        var spaces = '';
+        for(var i = 0; i < level; i++){
+          spaces += '&nbsp;&nbsp;&nbsp;&nbsp;';
+        }
+        node.element = $('<p class="el ' + node.id + '">').html(spaces + node.value + ' [-]').appendTo(parent);
+        node.input = $('<input type="text" class="input ' + node.id + '">').appendTo(parent);
+        count++;
+        if (node.children.length === 0){
+          level--;
+          return undefined;
+        }
+        else{
+          parent = "#" + count;
+          level++;
+        }
+        for(var i = 0; i < node.children.length; i++){
+          delve(node.children[i]);
+        }
+      }
+
+      $('input').on('keyup', function (key) {
+        console.log($(this).text);
+        if(key.keycode === 13){
+          console.log($(this).html());
+        }
+      });
+
+      drawTree();
+    })
+  </script>
+  </body>
+</html>
