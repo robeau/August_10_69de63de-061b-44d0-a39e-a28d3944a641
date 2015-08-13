@@ -11,37 +11,35 @@
       <header>
         <h1>Tree Writer</h1>
       </header>
+      <input type="file" class="importJSON" />
+      <input type="button" value="Save to JSON" class="saveJSON" />
       <div class="input0 el0 form0 tree-container"></div>
     </section>
   <script>
-    console.log('test id', '<%= uuid.v4() %>');
-    console.log('test id2', '<%= uuid.v4() %>');
+
     $(function(){
+
       var parent;
       var formin;
       var masterLevel;
       var json_tree = {
-        "children": [{
-          "children": [{
-            "children": [],
-            "value": "child2",
-            "id": "3",
-            "element": "",
-            "input": "",
-            "level": "2"
-          }],
-          "value": "child",
-          "id": "2",
-          "element": "",
-          "input": "",
-          "level": "1"
-        }],
+        "children": [],
         "value": "Root",
         "id": "1",
         "element": "",
         "input": "",
         "level": "0"
       }
+
+      $('.importJSON').on('change', function () {
+        console.log('changed...');
+        console.log(this.files);
+        var filereader = new FileReader();
+        filereader.addEventListener('loadend', function () {
+          json_tree = JSON.parse(filereader.result)
+          console.log('loaded',json_tree);
+        });
+      });
 
       function drawTree(){
         parent = "0";
@@ -72,7 +70,7 @@
         $('[class*="sp' + parent + '"]').after(formin);
 
         parent = '' + node.id - 1;
-        if (node.children.length === 0){
+        if (node.children.length === 0 && node.value != "Root"){
           lvl--;
           return undefined;
         }
@@ -80,18 +78,17 @@
           parent = '' + node.id;
           lvl++;
         }
-        console.log("input is: ", node.input);
         for(var i = 0; i < node.children.length; i++){
           delve(node.children[i], lvl + 1);
         }
         $('input').on('keydown', function (event) {
           if(event.keyCode === 13){
             event.preventDefault();
-            console.log('pressed enter', $(this).val);
-            console.log('value of the thing:',$(this).val);
             var strClass = $(this).attr('class');
             strClass = strClass.substr(5);
-            var myNode = findNode(json_tree, strClass, $(this).val());
+            console.log('pressed enter. class:', strClass);
+            findNode(json_tree, strClass, $(this).val());
+            event.keyCode = 0;
             newTree();
           }
         });
@@ -103,17 +100,19 @@
         drawTree();
       }
 
-      //return the node we're looking for
+      //find the parent node and push the new node to its children array
       function findNode (obj, cl, val){
         for (prop in obj){
           if(prop === 'id'){
+            console.log('class is',cl, 'nodeid is', obj[prop]);
             if(obj[prop] == cl){
+              console.log('got a match on',cl);
               obj["children"].push(newNode(val, obj["level"]));
               return 0;
             }
           }
         }
-        for (var i = 0; i < obj.length; i++){
+        for (var i = 0; i < obj["children"].length; i++){
           findNode(obj.children[i], cl, val);
         }
       }
