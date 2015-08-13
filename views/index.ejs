@@ -11,56 +11,128 @@
       <header>
         <h1>Tree Writer</h1>
       </header>
-      <div id="tree-container"></div>
+      <div class="input0 el0 form0 tree-container"></div>
     </section>
   <script>
+    console.log('test id', '<%= uuid.v4() %>');
+    console.log('test id2', '<%= uuid.v4() %>');
     $(function(){
-
-      var level = 0;
-      var count = 0;
-      var parent = "#tree-container";
+      var parent;
+      var formin;
+      var masterLevel;
       var json_tree = {
-        "children": [],
+        "children": [{
+          "children": [{
+            "children": [],
+            "value": "child2",
+            "id": "3",
+            "element": "",
+            "input": "",
+            "level": "2"
+          }],
+          "value": "child",
+          "id": "2",
+          "element": "",
+          "input": "",
+          "level": "1"
+        }],
         "value": "Root",
-        "id": count,
+        "id": "1",
         "element": "",
-        "input": ""
+        "input": "",
+        "level": "0"
       }
 
       function drawTree(){
-        delve(json_tree);
+        parent = "0";
+        delve(json_tree, 1);
+        console.log(json_tree);
       }
 
-      function delve (node){
+      function delve (node,lvl){
+        node.level = lvl;
         var spaces = '';
-        for(var i = 0; i < level; i++){
+        for(var i = 0; i < lvl; i++){
           spaces += '&nbsp;&nbsp;&nbsp;&nbsp;';
         }
-        node.element = $('<p class="el ' + node.id + '">').html(spaces + node.value + ' [-]').appendTo(parent);
-        node.input = $('<input type="text" class="input ' + node.id + '">').appendTo(parent);
-        count++;
+        var spanner = $('<span>').html(spaces);
+        //node.element = $('<p class="el ' + node.id + '">').html(spaces + node.value + ' [-]').appendTo('[class*="input' + parent + '"]');
+        //node.input = $('<input type="text" class="input' + node.id + '">').appendTo('[class*="input' + parent + '"]');
+
+        node.element =  $('<p class="el' + node.id + '">').html(spaces + node.value + ' [-]');
+
+        node.input = $('<form class="form' + node.id + '">');
+        formin = $('<input type="text" class="input' + node.id + '">');
+        $(formin).attr('placeholder', 'Enter a new child for ' + node.value);
+        $('[class*="el' + parent + '"]').append(node.element);
+        $('[class*="el' + parent + '"]').append(node.input);
+        parent = '' + node.id;
+        $(spanner).addClass('sp' + parent);
+        $('[class*="form' + parent + '"]').append(spanner);
+        $('[class*="sp' + parent + '"]').after(formin);
+
+        parent = '' + node.id - 1;
         if (node.children.length === 0){
-          level--;
+          lvl--;
           return undefined;
         }
         else{
-          parent = "#" + count;
-          level++;
+          parent = '' + node.id;
+          lvl++;
         }
+        console.log("input is: ", node.input);
         for(var i = 0; i < node.children.length; i++){
-          delve(node.children[i]);
+          delve(node.children[i], lvl + 1);
+        }
+        $('input').on('keydown', function (event) {
+          if(event.keyCode === 13){
+            event.preventDefault();
+            console.log('pressed enter', $(this).val);
+            console.log('value of the thing:',$(this).val);
+            var strClass = $(this).attr('class');
+            strClass = strClass.substr(5);
+            var myNode = findNode(json_tree, strClass, $(this).val());
+            newTree();
+          }
+        });
+      }
+
+      //redraw the tree
+      function newTree (){
+        $('[class*="tree-container"]').empty();
+        drawTree();
+      }
+
+      //return the node we're looking for
+      function findNode (obj, cl, val){
+        for (prop in obj){
+          if(prop === 'id'){
+            if(obj[prop] == cl){
+              obj["children"].push(newNode(val, obj["level"]));
+              return 0;
+            }
+          }
+        }
+        for (var i = 0; i < obj.length; i++){
+          findNode(obj.children[i], cl, val);
         }
       }
 
-      $('input').on('keyup', function (key) {
-        console.log($(this).text);
-        if(key.keycode === 13){
-          console.log($(this).html());
-        }
-      });
+      //return an element to place in the parent's children array
+      function newNode (val, parentLevel){
+        return ({
+          "children": [],
+          "value": val,
+          "id": "<%= uuid.v4() %>",
+          "element": "",
+          "input": "",
+          "level": parentLevel
+        })
+
+      }
 
       drawTree();
-    })
+    });
   </script>
   </body>
 </html>
